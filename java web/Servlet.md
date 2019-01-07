@@ -1,8 +1,8 @@
-# Sevlet
+#                                                                                                                                                                                                                                                                                                                Sevlet
 
 ## 链接Servlet程序
 
-编辑项目文件夹下的/WEB-INF/web.xml
+编辑项目文件夹下的/WEB-INF/web.xml                     
 
 在根标签下插入
 
