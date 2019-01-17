@@ -1,8 +1,10 @@
-# Tomcat服务器的配置
+# JavaWeb攻略之路
+
+## Tomcat服务器的配置
 
 Tomcat的所有配置文件都在conf文件夹当中，而其中的server.xml文件是核心配置文件
 
-## 服务器端口的配置
+### 服务器端口的配置
 
 找到以下片段
 
@@ -16,9 +18,9 @@ Tomcat的所有配置文件都在conf文件夹当中，而其中的server.xml文
 
 访问服务器就使用`http://localhost:端口号` 进行访问
 
-## 服务器虚拟映射
+### 服务器虚拟映射
 
-### 方式一
+#### 方式一
 把本地的文件目录映射到服务器上，并且指定一个别名
 
 假定有项目在`C:/`目录下，把`C:/`映射为`/JavaWebApps`，这样就能够使用`http://localhost:8080/JavaWebApps/资源名称`的方式来访问资源
@@ -51,9 +53,68 @@ pattern="%h %l %u %t &quot;%r&quot; %s %b" />
 
 ![1546883134575](C:\Users\Administrator\Desktop\1546883134575.png)
 
-### 方式二
+#### 方式二
 这种方式为Tomcat的默认映射方式
 
 只需要把项目目录放在Tomcat客户端目录的`/webapps`目录下，然后使用`http://localhost:8080/资源文件`访问即可
 
+## 对Http协议响应头使用的小例子
+
+### 1.重定向
+
+```java
+package com.nondirectional;
+
+import javax.servlet.*;
+@WebServlet("/Servlet01")
+public class Servlet01 extends HttpServlet{
+    protected void doGet(HttpServletRequest req,HttpServletResponse resp){
+        resp.setStatus(302)  //302为重定向状态码
+        resp.setHeader("Location","http://www.baidu.com")
+    }
+    
+    protected void doPost(HttpServletRequest req,HttpServletResponse resp){
+        this.doGet(req,resp);
+    }
+
+}
+```
+
+### 2.告知浏览器数据压缩格式 
+
+```java
+package com.nondirectional;
+
+import javax.servlet.*;
+import java.io.*;
+
+public class Main extends HttpServlet{
+    protected void doGet(HttpServletRequest req,HttpServletResponse resp){
+        String data = "You eyes shine like star in the sky.";
+        ByteArraysOutputStream bout = new ByteArraysOutputStream();
+        GZIPOutputStream gout = new GZIPOutputStream(bout);  //buffer
+        resp.setHeader("Content-length",new Integer(data.getBytes().length).toString());  //原始数据的大小
+        gout.write(data.getBytes());
+        gout.close(); 
+        resp.getOutputStream().write(bout.toByteArray());
+        resp.setHeader("Content-Encoding","gzip");
+        bout.close();
+    }
+}
+```
+
+### 3.定时跳转到指定页面																																																																																																																																		
+
+```java
+package com.nondirectional;
+
+import javax.servlet.*;
+
+public class Main extends HttpServlet{
+	protected void doGet(HttpServletRequest req,HttpServletResponse resp){
+		resp.setHeader("refresh","3;http://www.baidu.com");
+        //三秒钟之后跳转到百度网
+    }
+}
+```
 
