@@ -11,7 +11,7 @@
 
 ### 使用instanceof运算符鉴定对象
 
-```
+```java
 Person p = new Person;
 p instanceof Person;  //True or false
 ```
@@ -31,7 +31,7 @@ p instanceof Person;  //True or false
 使用前需要`import java.lang.reflect`包
 
 获取类以及基类的方法信息：
-```
+```java
 Method[] ms = Person.class.getMethods();
 for(Method m:ms){
   System.out.println(m);
@@ -39,14 +39,14 @@ for(Method m:ms){
 ```
 
 获取类以及基类的字段信息：
-```
+```java
 Field[] f = Person.class.getFields();
 for(Field value:f){
   System.out.println(value);
 }
 ```
 获取类以及基类的方法信息：
-```
+```java
 Constructor[] cs = Person.class.getConstractors();
 for(Constructor c:cs){
   System.out.println(c);

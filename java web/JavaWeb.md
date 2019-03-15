@@ -115,6 +115,39 @@ public class Main extends HttpServlet{
 		resp.setHeader("refresh","3;http://www.baidu.com");
         //三秒钟之后跳转到百度网
     }
+    protected void doPost(HttpServletRequest req,HttpServletResponse resp){
+        this.doGet(req,resp);
+    }
 }
+```
+
+### 4.告知浏览器返回的数据类型
+
+以方便浏览器以相应的操作处理数据
+
+```java
+package com.nondirectional;
+
+import javax.servlet.*;
+import java.io.*;
+
+public class Main extends HttpServlet{
+    protected void doGet(HttpServletRequest req,HttpServletResponse resp){
+		resp.setHeader("content-type","image/jpeg");
+        InputStream is = this.getServletContext().getResourceAsStream("/Wind.png");
+        byte[] b = new byte[1024];
+        OutputStream out = resp.getOutputStream();
+        while((is.read(b)>0)){
+            out.write(b);
+        }
+        is.close();
+    }
+}
+```
+
+### 5.下载指定文件
+
+```java
+
 ```
 
