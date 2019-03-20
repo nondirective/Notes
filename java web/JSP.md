@@ -1,4 +1,4 @@
-# JSP
+# *JSP*
 
 ## 一、JSP指令
 
@@ -279,7 +279,13 @@ public class IpTag extends SimpleTagSupport {
 </taglib>
 ```
 
+关于.tld文件当中tag标签下的body-content标签
 
+empty:没有标签提
+
+scriptless:标签体内不能有`<%.....%>` 内容，即不能有java代码
+
+**传统标签**和**简单标签**的标签体body-content的值设置成tagdependent，那么就表示标签体里面的内容是给标签处理器类使用的，tagdependent用得比较少，了解一下即可
 
 ### 第三部，在.jsp文件当中引入标签库
 
@@ -376,4 +382,164 @@ public class MyTag extends SimpleTagSupport{
 	}
 }
 ```
+
+使当前页面不执行
+
+```java
+package com.nondirectional.taglib;
+
+import java.io.IOException;
+
+import javax.servlet.jsp.JspException;
+import javax.servlet.jsp.tagext.JspFragment;
+import javax.servlet.jsp.tagext.SimpleTagSupport;
+
+public class MyTag extends SimpleTagSupport{
+	@Override
+	public void doTag() throws JspException, IOException {
+	throw SkipPageException();
+	}
+}
+```
+
+
+
+### JspFragment.invoke()方法详解
+
+```java
+void invoke(java.io.Writer out)
+```
+
+将jsp标签体的内容结果放到out对象当中
+
+如果out对象为null,则将内容继续放回缓冲区，即内容回流到浏览器
+
+如果简单标签的doTag方法没有调用invoke()方法，则表示标签体内容不执行
+
+### 给自定义标签添加属性
+
+在标签类当中增加一个属性，并且实现它的setter方法
+
+在.tld文件当中在目标标签下添加`<attribute>` 标签并且相应配置
+
+MyTag.java
+
+```java
+package com.nondirectional.taglib;
+
+import java.io.IOException;
+import java.io.StringWriter;
+
+import javax.servlet.jsp.JspContext;
+import javax.servlet.jsp.JspException;
+import javax.servlet.jsp.tagext.JspFragment;
+import javax.servlet.jsp.tagext.SimpleTagSupport;
+import javax.swing.text.AbstractDocument.Content;
+
+public class MyTag extends SimpleTagSupport{
+	private int count;
+
+	public void setCount(int count) {
+		this.count = count;
+	}
+
+
+	@Override
+	public void doTag() throws JspException, IOException {
+		JspFragment jspFragment = this.getJspBody();
+			if(this.count!=0) {
+				for(int i=0;i<count;i++) {
+					jspFragment.invoke(null);
+				}
+			}else {
+				jspFragment.invoke(null);
+				jspFragment.invoke(null);
+			}
+	}
+}
+```
+
+CT.tld
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<taglib xmlns="http://java.sun.com/xml/ns/j2ee"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-jsptaglibrary_2_0.xsd"
+    version="2.0">
+    <description>A tag library exercising SimpleTag handlers.</description>
+    <tlib-version>1.0</tlib-version>
+    <short-name>CT</short-name>
+    <uri>http://www.nondirectional/jsp/tags/</uri>
+    <tag>
+    <description>Tag</description>
+    <name>notExecute</name>
+    <tag-class>com.nondirectional.taglib.MyTag</tag-class>
+    <body-content>scriptless</body-content>
+    <attribute>
+    	<description>a attribute</description>
+    	<name>count</name>
+    	<!-- 是否是必须的属性 -->
+    	<required>true</required>
+    	<!-- 内容能否为EL表达式 -->
+    	<rtexprvalue>true</rtexprvalue>
+        <!-- 指定属性的类型 -->
+        <!-- 八大基本类型 -->
+        <type>int</type>
+    </attribute>
+    </tag>
+</taglib>
+```
+
+这里需要注意,`<required>` 的标签体如果是true的话表示必须要使用这个属性，如果没有这个属性会抛出异常，即使属性的内容是空字符串也是可以的
+
+index.jsp
+
+```java
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page import="com.nondirectional.domain.Person,java.util.*" %>
+<%@ taglib uri="http://www.nondirectional/jsp/tags/" prefix="ct" %>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+<ct:notExecute>
+awfaf
+<h1>fawflawjflkawkkfwaf</h1>
+</ct:notExecute>
+</body>
+</html>
+```
+
+### 自定义标签的属性非八大基础类型的情况
+
+在`<%...%>`中创建对象，然后使用EL表达式放到属性内容当中
+
+```jsp
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page import="com.nondirectional.domain.Person,java.util.*" %>
+<%@ taglib uri="http://www.nondirectional/jsp/tags/" prefix="ct" %>
+<!DOCTYPE html>
+<%
+Date date = new Date();
+request.setAttribute(date);
+%>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+<ct:notExecute date="${date}">
+</ct:notExecute>
+</body>
+</html>
+```
+
+### 开发自定义标签库
+
+#### 防盗链标签
 
