@@ -1,296 +1,339 @@
-#                                                                                                                                                                                                                                                                                                                Sevlet
+# Servlet
 
-## 链接Servlet程序
+## 运行过程
 
-编辑项目文件夹下的/WEB-INF/web.xml                     
+1. Web浏览器向Web容器发出请求
 
-在根标签下插入
+2. Web容器向创建请求头(包含内容)和响应头对象(空)
 
-```xml
-<servlet>
-	<servlet-name>Hello</servlet-name>
-    <!--随意取名但是要和<servlet-mapping>中的<servlet-name>相同-->
-	<servlet-class>A_Servlet</servlet-class>
-    <!--servlet程序的类名-->
-    
-</servlet>
+3. 发送给Servlet对象,调用service方法，读取请求头中的信息，写入信息到响应头对象返回给Web容器
 
-<servlet-mapping>
-	<servlet-name>Hello</servlet-name>
-	<url-pattern>/A_Servlet</url-pattern>
-	<!--访问servlet程序用到的路径-->
-</servlet-mapping>
-```
+4. Web容器响应Web浏览器
 
-## 插入初始化参数
+## 类的基本结构
 
-```xml
-<servlet>
-	<servlet-name>Hello</servlet-name>
-    <!--随意取名但是要和<servlet-mapping>中的<servlet-name>相同-->
-	<servlet-class>A_Servlet</servlet-class>
-    <!--servlet程序的类名-->
-    
-    <!--初始化参数-->
-    <init-param>
-    	<param-name>Name</param-name>
-        <param-value>Hari</param-value>
-    </init-param>
-</servlet>
+### init方法
 
-<servlet-mapping>
-	<servlet-name>Hello</servlet-name>
-	<url-pattern>/A_Servlet</url-pattern>
-	<!--访问servlet程序用到的路径-->
-</servlet-mapping>
-```
+对Servlet对象的初始化，从Servlet创建到销毁只执行一次，即对象生成后
 
+### service方法
 
+在接受到外部对象请求时的服务操作
 
-## 生命周期
+### destory方法
 
-一个Servlet程序必须实现Servlet接口或者继承Servlet的实现类，如HttpServlet
+servlet对象销毁时执行的相应操作
 
-```java
-import javax.servlet.*;
-import javax.servlet.http.*;
+## 两个类
 
-public class Servlet_Demo implements     Servlet{
-    public void init(){}
-    
-    protected void service(HttpServletRequest arg0, HttpServletResponse arg1) throws ServletException, IOException {}
-    
-    private void destory() {}
-}
-```
+### GenericServlet(抽象类)
 
+仅包含了三个基础抽象方法
 
+### HttpServlet(实现类)
 
-要使用到程序的时候会调用一次且只调用一次init()方法作初始化
+已经包含了处理相应请求的抽象方法,只需要复写即可,诸如doPost(),doGet()方法
 
-外部向程序发送请求的时候调用service()方法提供服务
+## 将Servlet类配置到应用程序中
 
-当程序结束的调用destory()方法
+在web.xml文件中插入web-app标签内插入<servlet>标签与<servlet-marpping>标签
 
-Servlet程序的绝大部分方法都是容器（Tomcat）自动调用的
+#### <servlet>
 
-在覆盖生命周期方法的时候如果实现的类是GenericServlet及以下的派生了，对init()方法复写的时候切记复写无参数的init()方法,因为有参数的init()方法是tomcat容器调用的初始化方法,其中做了必要的初始化操作
+#### <servlet-name>
 
-```java
-public void init(ServletConfig config) throws ServletException {
-	this.config = config;
-    init();
-}
-```
+Servlet类的注册名称，需要和<servlet-mapping>标签当中的相应标签相同，以保证对应
 
+<servlet-class>
 
+值为所注册的Servlet类的完整类名，即如在包中需要把包路径写完整
 
-## Servlet对象
+<servlet>元素用于注册Servlet，它包含有两个主要的子元素：<servlet-name>和<servlet-class>，分别用于设置Servlet的注册名称和Servlet的完整类名。 
 
-### ServletConfig对象
+### <servlet-mapping>
 
-这个对象当中存储的是配置文件信息也就是在/WEB-INF/web.xml当中配置的servlet注册信息，以及其中配置的初始化参数
+#### 一个<servlet-mapping>元素用于映射一个已注册的Servlet的一个对外访问路径，它包含有两个子元素：<servlet-name>和<url-pattern>，分别用于指定Servlet的注册名称和Servlet的对外访问路径
 
-#### 获得初始化参数
+#### <servlet-name>
 
-```java
-public void init(ServletConfig config) throws ServletException {
-		Enumeration e = config.getInitParameterNames();
-		while(e.hasMoreElements()) {
-			System.out.println(config.getInitParameter((String) e.nextElement()));
-		}
-    
-    	//获得servlet配置信息当中的名称
-    	//<servlet>
-		//	<servlet-name>Hello</servlet-name>
-    	System.out.println(config.getServletName());
-	}
-```
+##### 即与<servlet>标签当中的<servlet-name>标签的值想对应
 
-### ServletContext对象
+#### <url-pattern>
 
-ServletContext对象是一个Web应用程序当中所有servlet对象共享的一个对象，用它可以实现Servlet对象之间的通讯,利用它能够把一个Servlet对象得到的request请求转发到另外一个Servlet对象
+##### 这个标签当中的内容就是对外的访问路径，其根目录为当前应用程序目录即/servlet/xxx,在浏览器当中访问http://localhost:8080/ServletDemo01/servlet/xxx
 
-#### 在xml配置文件当中给ServletContext对象设置参数
+## 访问路劲映射
 
-```xml
-<context-param>
-	<parma-name>name</parma-name>
-    <param-value>hari</param-value>
-</context-param>
-```
+### 配置映射路径的方法
 
-#### 给ServletContext对象设置属性
+#### 在web.xml文件当中插入servlet-mapping标签
 
-```java
-config.getServletContext().setAttribute("name","hari");
-```
-
-### HttpServlet对象
-
-#### HttpServlet 对象的原理
-
-客户端发送请求到HttpServlet对象
-
-调用service(ServletRequest req, ServletResponse rep)方法
-
-该方法内部调用service(HttpServletRequest req, HttpServletResponse)方法
-
-```java
-public void service(ServletRequest req, ServletResponse rep){
-    service((HttpServletRequest)req,(HttpServletResponse)rep);
-}
-```
-
-service(HttpServletRequest req, HttpServletResponse)方法根据请求的类型选择调用doGet(),doPost()方法
-
-下面用假代码打个比方
-
-```java
-public void service(HttpServletRequest req, HttpServletResponse){
-    switch(req.type){
-        case "get":
-            doGet();
-       		break;
-        case "pose":
-            doPost();
-            break;
-    }
-}
-```
-
-所以说我们编辑HttpServlet类只需要复写相应请求的do方法即可
-
-如果doGet(),doPost()方法没有复写就被调用，会出现405错误(没有相应的处理请求的方法)
-
-
-
-
-
-
-
-#### 处理get请求
-
-举例
-
-```java
-protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-	resp.setContentType("text/html");  //设置响应头的类型
-	String firstName = req.getParameter("firstName");  //获得get请求当中名为firstName的值
-	String lastName = req.getParameter("lastName");  //获得get请求当中名为lastName的值
-	PrintWriter pw = resp.getWriter();  //获得响应头输出流
-	pw.println("<h1>"+message+"</h1>");
-	pw.println("<p>"+firstName+" "+lastName+"</p>");
-}
-```
-
-```html
-<!DOCTYPE html>
-<html>
-<head>
-<title>Servlet test</title>
-</head>
-<body>
-	<h1>Servlet test</h1>
-	<form action="A_Servlet" method="GET">
-        <!--属性action的值就是目标servlet程序名-->
-		<a>First name:</a> <input type="text" name="firstName" /> <br/> 
-		<a>Last name:</a> <input type="text" name="lastName" /> <br/>
-		 <input type="submit" value="Submit" />
-	</form>
-</body>
-</html>
-```
-
-#### 处理Post请求
-
-```java
-protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-	resp.setContentType("text/html");  //设置响应头的类型
-	String firstName = req.getParameter("firstName");  //获得get请求当中名为firstName的值
-	String lastName = req.getParameter("lastName");  //获得get请求当中名为lastName的值
-	PrintWriter pw = resp.getWriter();  //获得响应头输出流
-	pw.println("<h1>"+message+"</h1>");
-	pw.println("<p>"+firstName+" "+lastName+"</p>");
-}
-
-protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {	
-    doGet(req, resp);
-}
-```
-
-```html
-<!DOCTYPE html>
-<html>
-<head>
-<title>Servlet test</title>
-</head>
-<body>
-	<h1>Servlet test</h1>
-	<form action="A_Servlet" method="POST">
-        <!--属性action的值就是目标servlet程序名-->
-		<a>First name:</a> <input type="text" name="firstName" /> <br/> 
-		<a>Last name:</a> <input type="text" name="lastName" /> <br/>
-		 <input type="submit" value="Submit" />
-	</form>
-</body>
-</html>
-```
-
-### Filter
-
-#### 在xml文件当中配置Filter
-
-```xml
-<filter>
-  <filter-name>LogFilter</filter-name>
-    <!--和servlet配置相同-->
-  <filter-class>LogFilter</filter-class>
-    <!--Filter类的路径-->
-  <init-param>
-    <param-name>Site</param-name>
-    <param-value>w3cschool在线教程</param-value>
-  </init-param>
-</filter>
-<filter-mapping>
-  <filter-name>LogFilter</filter-name>
-    <!--和servlet配置相同-->
-  <url-pattern>/*</url-pattern>
-    <!--接受过滤的目标-->
-</filter-mapping>
-```
-
-#### Filter类
-
-```java
-public class LogFilter implements Filter{
-	@Override
-	public void init(FilterConfig arg0) throws ServletException {
-		System.out.println("Filter init.");
-	}
-	
-	@Override
-	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-			throws IOException, ServletException {
-			System.out.println(new Date().toString());
-        
-        	/*
-        	*执行完一系列操作之后将请求回传到过滤链当中
-        	*如果没有这行操作，请求将在这里中断
-        	*/
-			chain.doFilter(request, response);
-	}
-	
-	@Override
-	public void destroy() {
-		System.out.println("Filter destory.");
-	}
-}
-
-```
-
-#### 使用多个Filter
-
- 在一个项目当中能够根据实际情况定义多个过滤器，只需要在web.xml文件当中正确链接即可
-
-此外，过滤器的应用顺序是和<filter-mapping>的顺序相同的
+#### 在其中插入servlet-name标签，内容为对应的Servlet对象名称
+
+#### 在其中插入url-pattern标签，内容为映射的路径
+
+### 能够使用通配符进行映射
+
+### 多个路径能够指向同一个Servlet对象
+
+### 路径为/时，表示为缺省路径，如果容器找不到其他相应的路径时都将访问缺省路径对象的Servlet对象,如404页
+
+## ServletConfig(Servlet对象的配置信息对象)
+
+### 如何配置配置对象
+
+#### 在web.xml文件当中，在相应的Servlet标签之中插入init-param标签
+
+#### 在init-param标签当中插入param-name标签，为配置项的名称
+
+#### 在init-param标签当中插入param-value,为配置项的内容 
+
+#### 这里需要注意,上述配置的初始化参数是在相应Servlet对象生成的时候,这些参数才会载入到ServletConfig对象当中
+
+#### 示例
+
+### 如何在容器当中获得ServletConfig对象
+
+#### 使用getServletConfig方法
+
+### 利用ServletConfig对象获取初始化参数
+
+#### 使用getInitParameter方法或者 getInitParameterNames方法获得遍历对象进行遍历
+
+### 方法
+
+#### getServletContext(),获取上下文对象
+
+#### getInitParameter(String name)根据参数名称获取初始化参数值
+
+#### getInitParameterNames(),获取到一个Enumeration遍历对象，可以对所有初始化参数进行遍历
+
+#### getServletName(),获取当前对象名称
+
+## ServletContext
+
+### 在每个应用程序启动的时候，容器都会为它创建一个ServletContext对象
+
+### 在一个应用程序当中使用ServletContext共享数据，可以说，ServletContext的作用域就是在一个应用程序当中
+
+### 在应用程序当中设置初始化参数 
+
+#### 在web.xml当中<web-app>内插入<context-param>
+
+#### <context-param>中
+
+##### <param-name>
+
+###### 初始化参数的名称
+
+##### <param-value>
+
+###### 初始化参数的值
+
+#### 示例
+
+### 利用Context对象获取在web.xml文件当中配置的初始化参数 
+
+#### 实例代码
+
+### 利用ServletContext实现请求转发
+
+#### 1.获得ServletContext对象
+
+#### 2.根据ServletContext对象的getRequestDispatcher()方法获得RequestDispatcher对象
+
+#### 3.把request,response作为参数传递到RequestDispatcher的forward(arg1,arg2)方法中
+
+#### 示例
+
+### 利用ServletContext获得项目资源文件流
+
+#### context.getResourceAsStream(path)
+
+## 利用装载Servlet类的装载器来加载资源文件流
+
+### 使用这种方法加载文件只适用于小文件，用在大文件是极易造成jvm内存溢出
+
+### 并且装载的文件只局限于java资源文件夹当中的资源
+
+### 1.获得类装载器对象
+
+#### ClassLoader loader = this.getClass().getClassLoder();
+
+### 2.使用装载器的方法获得文件流
+
+#### InputStream is = loader.getResourceAsStream(path);
+
+## HttpServletRequest/HttpServletResponse
+
+### HttpServletResponse
+
+#### Response的OutputStream输出中文的两种方式
+
+##### 1.使用OutputStream流设置响应头编码
+
+###### String str = "党的光芒照大地!";
+
+###### byte[] data = str.getBytes("UTF-8");
+
+###### response.setHeader("content-type","text/html;charset=UTF-8");
+
+###### response.getOutputStream().write(data);
+
+##### 2.使用PrintWriter流并设置页面编码，同事设置相应体编码
+
+###### String str = "党的光芒照大地！";
+
+###### response.setCharacterEncoding("UTF-8");
+
+###### PrintWriter pw = response.getWriter();
+
+###### pw.println("<meta http-eqiv='content-type' content='text/html;charset=UTF-8'>");
+
+###### pw.println(str);
+
+#### 下载文件
+
+#####  1.配置响应头
+
+##### response.setHeader("content-disposition","attachment;filename="+fileName);
+
+##### 2.将需要下载的文件的数据写入到response的OutputStream
+
+##### 如果需要给需要下载的文件设置中文文件名的话1中的内容变为
+
+##### response.setHeader("content-disposition",attachment;filename="+URLEncoder.encode(fileName,"UTF-8"));
+
+## 生成验证码图片
+
+### 实例
+
+#### 
+
+### 1.创建一个图片对象 （BufferedImage）
+
+### BufferedImage img = new BufferedImage(80,20,BufferedImage.TYPE_INT_RGB);
+
+### 2.获得图片对象的画笔对象
+
+### Graphics2D g = (Graphics2D)img.getGraphics();
+
+### 3.设置画笔颜色
+
+### g.setColor(Color.WHITE);
+
+### 4.填充图片背景
+
+### g.fillRect(0,0,80,20);
+
+### 5.设置字体样式
+
+### g.setFont(new Font(null,Font.BOLD,20);
+
+### 三个参数分别是字体，字体样式，字体大小
+
+### 6.写字符串到图片
+
+### g.drawString("LLLP",0,0);
+
+### 7.将图片写入到浏览器
+
+### ImageIO.write(img.'jpg',response.getOutputStream());
+
+## web工程中URL地址的推荐用法
+
+### 推荐使用/开头
+
+### 假如需要访问localhost/Project01/ServletA
+
+### 1.如果URL地址是交给服务器使用的，或者是在容器当中使用的,/是基于当前应用程序的,即/ServletA
+
+### 2.如果URL地址是交给浏览器使用的，那么/是基于webapps目录的，即/Project01/ServletA
+
+## 两种会话
+
+### Cookie
+
+#### Cookie主要是在用户本地，浏览器把数据保存到用户本地，这些数据的生命周期是可以设置的，同时结束会话之后也是可以保证存在的
+
+#### Cookie使用的简单流程
+
+##### 获得当前会话对象与当前服务器保存的所有Cookie 
+
+###### Cookie[] cookies = request.getCookies();
+
+##### 遍历Cookie列表是否已经存在有相应的Cookie
+
+##### 获得Cookie的名称和值
+
+###### cookie.getName()
+
+###### cookie.getValue(value)
+
+##### 创建新的Cookie
+
+###### Cookie cookie = new Cookie();
+
+###### 设置Cookie名称和值
+
+####### cookie.setName(name);
+
+####### cookie.setValue(value);
+
+##### 设置Cookie的生命周期 
+
+###### cookie.setMaxAge(time);
+
+##### 写入Cookie
+
+###### respsonse.addCookie(cookie);
+
+#### 设置Cookie的作用域
+
+##### cookie.setPath("/Project01")
+
+##### 当用户访问Project01目录下的资源的时候才是带Cookie的
+
+### Session
+
+#### 和Cookie的区别
+
+##### Cookie是服务器写给客户端当中的，是在客户端你的
+
+##### Session是服务器写到服务器当中的
+
+#### 实现原理
+
+##### 服务器端把SesssionId用Cookie写入到客户端当中
+
+##### 服务器端保存相应数据到相应SessionId对应的Session中
+
+##### 当客户端再次访问时,带着它的SessionId给到服务器端，服务器端就知道了这个的Session是哪一个
+
+#### 在客户端禁用Cookie时的解决方案
+
+##### 由于这个情况是非常难见没有加以理解抽取，具体内容在
+
+##### https://www.cnblogs.com/xdp-gacl/p/3855702.html
+
+#### 销毁
+
+##### 自动销毁设置
+
+###### 默认的自动销毁时30分钟
+
+###### 在web.xml当中插入
+
+###### <session-config>
+
+###### <session-timeout>分钟</sesssion-timeout>
+
+###### </sesssion-config>
+
+##### 手动销毁
+
+###### Session.invalidate();
+
+### 会话的概念是用户在访问服务器的这个过程，如打开浏览器访问浏览器
+
+### Cookie和Session就是为了在用户和服务器会话的过程中为了保护与用户交互数据的技术

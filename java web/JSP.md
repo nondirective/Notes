@@ -88,7 +88,7 @@
 |  6.  |     out     |      javax.servlet.jsp.JspWriter       |
 |  7.  |    page     |            java.lang.Object            |
 |  8.  |  exception  |          java.lang.Throwable           |
-|  9.  |  sesssion   |    javax.servlet.http.HttpSesssion     |
+|  9.  |   session   |    javax.servlet.http.HttpSesssion     |
 
 其中的application对象就是前面所说的ServletContext对象，是Web应用的
 
