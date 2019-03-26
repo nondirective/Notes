@@ -188,6 +188,8 @@ pageContext.setAttribute("list",list);
 </html>
 
 <!--
+页面结果:
+
 当前的索引：0 
 已经循环的次数：1 
 是否为遍历开始：true 
