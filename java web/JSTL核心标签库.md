@@ -127,6 +127,8 @@ var属性和scope属性都是可选的
 
 
 
+## 循环标签
+
 ### `<c:foreach>`  标签的使用
 
 ```jsp
@@ -206,4 +208,8 @@ pageContext.setAttribute("list",list);
 是否为遍历结尾：true 
 -->
 ```
+
+## URL操作标签
+
+### `<c:url>`标签的使用
 
