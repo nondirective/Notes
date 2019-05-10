@@ -208,8 +208,3 @@ pageContext.setAttribute("list",list);
 是否为遍历结尾：true 
 -->
 ```
-
-## URL操作标签
-
-### `<c:url>`标签的使用
-
