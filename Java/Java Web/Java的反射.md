@@ -54,7 +54,7 @@ setName.invoke(p,"Mari");
 
 1. 获得Field对象
 2. 如果需要访问的是private字段，先调用Field对象的`setAccessable(boolean flag)`方法设置字段为可被访问
-3. 最后调用Field的`set(Object obj,Object arg);
+3. 最后调用Field的`set(Object obj,Object arg);`
 
 ```java
 Person p = Person.class.getDeclaredConstructor(String.class, int.class).newInstance("Hari",16);
