@@ -211,3 +211,8 @@ public class Main{
 }
 ```
 
+
+
+需要注意，在动态代理的invoke方法内部，一般不使用参数当中的proxy对象
+
+如果使用proxy对象调用方法，调用方法又会触发invoke方法，进入到无限循环当中

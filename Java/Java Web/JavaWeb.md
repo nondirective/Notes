@@ -145,9 +145,3 @@ public class Main extends HttpServlet{
 }
 ```
 
-### 5.下载指定文件
-
-```java
-
-```
-
