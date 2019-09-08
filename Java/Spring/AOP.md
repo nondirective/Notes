@@ -31,19 +31,51 @@
 
 
 
+
+
+
+
 ## 基于注解
 
 
 
 ### 使用条件
 
+Spring本身也有自己的AOP，但是普遍都在使用AspectJ，反正基本上都在用。
+
+
+
 * 导入Spring-AOP及AspectJ依赖jar包
+
+    略
+
+* xml配置文件当中引入aop命名空间
+
 * 在`ApplicationContext.xml`当中加入`<aop:aspcetj-autoproxy>`自动代理
+
 * 每一个切面都是一个IoC容器当中的bean, 都需要用``@Component`等注解标注装配到容器当中
+
+    
+
+    声明切面
+
+    ```java
+    @Aspect
+    @Component
+    public class TestAspect{
+        //
+    }
+    ```
+
+    
 
 
 
 ### 通知
+
+​	上文当中已经提到了通知的含义,需要知道所有的通知都是在切面对象当中的方法
+
+
 
 ​	在除环绕通知外的所有通知当中都可以指定一个**JoinPoint**对象用来获得目标方法的信息(非必须)，而环绕通知必须包含**ProceedingJoinPoin**t参数,如果不包含这个参数将无法调用目标方法，Object为返回值
 
@@ -51,7 +83,7 @@
 
 #### 前置通知
 
-前置通知使用``@Before`注解，`@Before`中的参数为切点，可以使用`*`占位符
+前置通知使用``@Before`注解，`@Before`中的参数为切点表达式，**可以使用`*`占位符**
 
 ```java
 @Before("execution(* com.nond.demo01.Calc.*(int,int))")
@@ -59,6 +91,7 @@ public void beforeAdvice(JoinPoint point) {
 	System.out.println("Method:"+point.getSignature().getName()+" begin,With:"+Arrays.asList(point.getArgs()));
 }
 ```
+
 
 
 #### 后置通知
@@ -75,11 +108,12 @@ public void afterAdvice(JoinPoint point) {
 ```
 
 
+
 #### 返回通知
 
 在返回通知中，注解需要指定两个参数
 
-* **value**：切点
+* **value**：切点表达式
 
 * **returning**：目标方法的返回值名称，指定该名称之后可以在通知方法的参数列表当中设置相同名称的参数。该参数的值就是目标方法的返回值
 
@@ -93,11 +127,12 @@ public void returningAdvice(JoinPoint point,Object result) {
 ```
 
 
+
 #### 异常通知
 
 在异常通知中，注解需要指定两个参数
 
-- **value**：切点
+- **value**：切点表达式
 
 - **throwing**：在目标方法当中捕捉到的异常对象，指定该名称之后可以在通知方法的参数列表当中设置相同名称的参数。该参数就是捕捉到的异常对象
 
@@ -111,11 +146,12 @@ public void throwingAdvice(JoinPoint point,Throwable e) {
 ```
 
 
+
 #### 环绕通知
 
-* 环绕通知用`@Around`注解标注，注解内的参数为目标的签名
+* 环绕通知用`@Around`注解标注，注解内的参数为切点表达式
 
-* catch捕捉`Throwable`,`proceed()`抛出`java.lang.Throwable`
+* catch捕捉`Throwable`,即`point.proceed()`抛出`java.lang.Throwable`
 
 * 环绕通知就是一套完整的动态代理，在环绕通知内能够加入前置通知、后置通知等所有的通知
 
