@@ -552,7 +552,7 @@ Spring 还允许在属性文件中使用 `${propName}`，以实现属性之间�
         ​	引入context命名空间
         
         ```xml
-<context:property-placehoder location="classpath:ApplicationContext.xml"
+<context:property-placeholder location="classpath:db.properties"/>
         ```
         
         

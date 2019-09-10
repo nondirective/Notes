@@ -14,12 +14,20 @@
 @Test
 public void func1() throws SQLException, ClassNotFoundException {
 	Class.forName("com.mysql.jdbc.Driver");
-	String url = "jdbc:mysql://localhost:3306/exam";
+	String url = "jdbc:mysql://localhost:3306/exam?useSSL=true&amp;serverTimezone=UTC&amp;useUnicode=true&amp;characterEncoding=UTF8";
 	String username = "test";
 	String password = "hhh123";
 	Connection connection = DriverManager.getConnection(url, username, password);
 }
 ```
+
+
+
+# ！！！ 连接url已经要加参数如jdbc:mysql://localhost:3306/blog?useSSL=true&serverTimezone=GMT&useUnicode=true&characterEncoding=UTF8
+
+如果使用的不是UTF8字符集&需要换成&amp;
+
+
 
 JDBC是什么？
 
