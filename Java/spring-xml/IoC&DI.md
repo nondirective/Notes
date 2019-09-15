@@ -765,7 +765,7 @@ resoure-pattern属性设置正则表达式可以过滤不需要的类如`resourc
 
 如果需要排除由标有 @Service,@Controller和@Repository 的注解的类，需要把`<context:component-scan>`标签的use-default-filters属性设为false
 
-use-default-filters 属性的默认值为 true，即使用默认的 Filter 进行包扫描，而默认的 Filter 对标有 @Service,@Controller和@Repository 的注解的类进行扫描
+use-default-filters 属性的默认值为 true，即使用默认的 Filter 进行包扫描，而默认的 Filter 对标有 @Service,@Controller,@Repository和@Compoment注解的所有类进行扫描
 
 
 
