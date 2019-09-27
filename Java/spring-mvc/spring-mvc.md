@@ -610,6 +610,10 @@ public class CustomConverter implements Converter<String, Person> {
     ```xml
     <mvc:annotation-driven conversion-service="ConversionService"></mvc:annotation-driven>
     ```
+    
+    ### 数据格式化
+    
+    
 
 ## 静态资源请求
 
@@ -663,4 +667,97 @@ public class CustomConverter implements Converter<String, Person> {
 -   支持NumberFormat注解、DateTimeFormat注解完成数据的格式化
 -   支持使用Vaild注解对JavaBean进行JSR 303数据校验
 -   支持使用RequestBody、ResonponseBody注解
+
+
+
+## @InitBinder
+
+
+
+InitBinder注解标注的方法可以对WebDataBinder对象进行初始化，其中WebDataBinder对象用于完成表单请求参数到JavaBean的属性绑定
+
+通过WebDataBinder对象可以对数据绑定 的过程进行控制
+
+InitBinder标注方法返回值为**void**
+
+入参一般为**WebDataBinder**
+
+```java
+@InitBinder
+public void InitBinder(WebDataBinder binder){
+    ...
+}
+```
+
+## 数据格式化
+
+​	在一些情况下，传入的数据需要进行格式化，比如说金额、日期等。传递的日期格式为yyyy-MM-dd或者yyyy-MM-dd hh:ss:mm，这些是需要格式化的，对于金额也是如此，比如1万元人民币，在正式场合往往要写作￥10 000.00，这些都要求把字符串按照一定的格式转换为日期或者金额
+
+
+
+为了满足这些场景的需求，Spring提供了Fomatter接口、DateTimeFormat注解和NumberFormat注解
+
+后面两个接口可能无法满足需求，可以自定义Formatter
+
+
+
+[自定义DateTimeFormatter](https://blog.csdn.net/xinluke/article/details/53672480)
+
+[数据格式化](https://www.cnblogs.com/sonng/archive/2017/04/03/6661273.html#_label0)
+
+
+
+## JSR-303数据校验
+
+​	JSR-303 是JAVA EE 6 中的一项子规范，叫做Bean Validation，Hibernate Validator 是 Bean Validation 的参考实现 . Hibernate Validator 提供了 JSR 303 规范中所有内置 constraint 的实现，除此之外还有一些附加的 constraint。
+
+JSR-303标准
+
+![](.\JSR-303.png)
+
+Hibernate Vaildator附加
+
+![](.\HibernateVaildator.png)
+
+
+
+Hibernate Vaildator的依赖
+
+```xml
+<!-- https://mvnrepository.com/artifact/org.hibernate/hibernate-validator -->
+<dependency>
+    <groupId>org.hibernate</groupId>
+    <artifactId>hibernate-validator</artifactId>
+    <version>5.4.3.Final</version>
+</dependency>
+
+```
+
+​	除了需要导入JSR-303的实现依赖以外，还需要在Spring上下文当中装配一个**LocalValidatorFactoryBean**，不过，只要在BeanConfig中配置了 mvc:annotation-driven 标签，Spring就会自动的为我们装配这个FactoryBean
+
+​	实际使用时，只要给需要校验的类属性标注上需要的约束注解，并且给相应的控制器方法入参标注@Valid注解即可
+
+
+
+
+
+#### 错误信息以及数据回显
+
+
+
+首先来说数据校验过程中出现的错误对象，从数据绑定流程我们可以知道数据校验产生的错误也会传入到**BindingResult**对象当中，需要用到错误信息，添加BindingResult到控制器方法入参即可
+
+
+
+需要注意的时，如果需要这个入参，那么这个入参必须要紧跟在@Validator注解的入参后面，即``public String xxx(@Valid String name,BindingResult bindingResult){...}`，否则会出现错误
+
+
+
+##### 数据回显
+
+​	对于简单数据类型（如String，Integer，Float）需要回显到表单，则需要手动的把数据传入到request域中
+
+对于POJO类型入参Spring会自动的将POJO对象传入到Request域中，我们只要使用input标签的value属性即可进行回显
+
+`<input type="text" value="${xxx}"`
 
