@@ -1,3 +1,5 @@
+@[TOC](目录)
+
 # Spring-mvc
 
 ## HelloWorld
@@ -11,9 +13,7 @@
 
 ### Step2.配置web.xml
 
-配置DispatcherServlet
-
-
+#### 配置DispatcherServlet
 
 手动配置
 
@@ -87,55 +87,31 @@ public class HelloWorld {
 
 
 
-
-
 ## @RequestMapping
 
-在SpringMVC中**@RequestMapping**注解的作用是用来声明，当前控制器是用来处理哪些请求的
+在SpringMVC中**RequestMapping**注解的作用是用来声明，当前控制器是用来处理哪些请求的
 
 
 
-该注解能够标注在类、方法上
+该注解能够标注在类、方法上，标注在类上提供初步的映射信息，标注在方法上，提供进一步的映射信息
 
 
 
-标注在类上
+*   method属性 
 
-提供初步的映射信息
+    映射对应的请求方法
 
+*   params属性
 
+    限定请求参数
 
-标注在方法上
+    如`!param1`，请求不包含param1
 
-提供进一步的映射信息
+    ​	`param1 != value1`，请求的param1参数值不为value1
 
+*   headers属性
 
-
-value属性
-
-映射信息
-
-
-
-method属性 
-
-映射对应的请求方法
-
-
-
-params属性
-
-限定请求参数
-
-如`!param1`，请求不包含param1
-
-​	`param1 != value1`，请求的param1参数值不为value1
-
-
-
-headers属性
-
-同params属性相类似，用于限定请求的请求头
+    同params属性相类似，用于限定请求的请求头
 
 
 
@@ -153,7 +129,7 @@ headers属性
 
 ## @PathVariable
 
-通过**@PathVariable**能够将URL中占位符参数绑定到控制器方法的入参当中
+通过**PathVariable**注解能够将URL中占位符参数绑定到控制器方法的入参当中
 
 如
 
@@ -164,10 +140,6 @@ public String func01(@PathVariable("name")String name){
     return "success";
 }
 ```
-
-
-
-
 
 ## 发出Put、Delete请求
 
@@ -238,8 +210,6 @@ MVC能够通过请求参数以及控制器的入参自动的创建对象
 如参数username,password,address.province,address.city
 
 入参user
-
-
 
 
 
@@ -749,7 +719,7 @@ Hibernate Vaildator的依赖
 
 
 
-需要注意的时，如果需要这个入参，那么这个入参必须要紧跟在@Validator注解的入参后面，即``public String xxx(@Valid String name,BindingResult bindingResult){...}`，否则会出现错误
+需要注意的时，如果需要这个入参，那么这个入参必须要紧跟在@Validator注解的入参后面，即`public String xxx(@Valid String name,BindingResult bindingResult){...}`，否则会出现错误
 
 
 
@@ -761,3 +731,221 @@ Hibernate Vaildator的依赖
 
 `<input type="text" value="${xxx}"`
 
+
+
+
+
+## 文件上传
+
+要使用Spring mvc提供的文件上传功能需要把MultipartResolver  bean配置到BeanConfig中
+
+在MultipartResolver当中还能配置默认编码，最大上传文件大小等配置信息
+
+```xml
+<bean name="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+	<property name="defaultEncoding" value="utf-8"></property>
+	<property name="maxUploadSize" value="1024000"/>
+</bean>
+```
+
+
+
+还需要使用到commos-fileupload
+
+```xml
+	<!-- https://mvnrepository.com/artifact/commons-fileupload/commons-fileupload -->
+	<dependency>
+		<groupId>commons-fileupload</groupId>
+		<artifactId>commons-fileupload</artifactId>
+		<version>1.3.1</version>
+	</dependency>
+```
+上传表单
+
+```html
+<form action="xxx" enctype="multipart/form-data" method="post">
+    <input type="file" name="file"/>
+    <input type="submit"/>
+</form>
+```
+
+在Controller方法接收上传文件对象
+
+```java
+@RequestMapping("testFileUpload")
+public String testFileUpload(@RequestParam("file")MultipartFile file){
+    System.out.println(file.getOriginalName());
+    System.out.println(file.getSize());
+    return "success";
+}
+```
+
+## 拦截器
+
+
+
+### 自定义拦截器
+
+自定义的拦截器类
+
+```java
+public class MyHandlerInterceptor implements HandlerInterceptor {
+	/**
+	 *	目标方法执行前调用
+	 *	返回值决定了是否执行后续的拦截器方法和目标方法
+	 *	handler对象为拦截器所拦截的方法
+	 */
+	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
+			throws Exception {
+		
+		return true;
+	}
+	/** 
+	 * 	目标方法执行后调用，但是在视图渲染之前
+	 * modelAndView对象为渲染前的视图对象，程序处理后返回的ModelAndView对象，亦可为空
+	 */
+	public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
+			ModelAndView modelAndView) throws Exception {
+		// TODO Auto-generated method stub
+
+	}
+	/**
+	 * 	目标方法执行后，且在视图渲染之后执行
+	 */
+	public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
+			throws Exception {
+		// TODO Auto-generated method stub
+
+	}
+
+}
+```
+
+配置到BeanConfig中
+
+```xml
+<mvc:interceptors>
+	<bean class="com.xxx.xxx.MyHandlerInterceptor"/>
+</mvc:interceptors>
+```
+
+### 配置拦截器的拦截路径
+
+在`mvc:interceptors`标签内配置子标签`mvc:interceptor`，在子标签内通过`mvc:mapping`或`mvc:exclude-mapping`子标签配置当前`mvc:interceptor`标签下所有的拦截器bean拦截与不拦截的路径
+
+```xml
+<mvc:interceptors>
+    <mvc:interceptor>
+        <!--拦截器拦截的路径-->
+    	<mvc:mapping path="/xxx"/>
+        <!--
+		<mvc:exclude-mapping path="/xxx"/>
+		拦截器不拦截的路径
+		-->
+        <bean class="xxxHandlerInterceptor"></bean>
+    </mvc:interceptor>
+</mvc:interceptors>
+```
+
+
+
+
+
+### 拦截器的执行顺序
+
+先后配置有拦截器
+
+*   **HandlerInterceptorOne**
+*   **HandlerInterceptorTwo**
+
+
+
+执行顺序为
+
+1.  HandlerInterceptorOne#preHandle
+2.  HanderInterceptorTwo#preHandle
+3.  目标方法
+4.  HanderInterceptorTwo#postHandle
+5.  HanderInterceptorOne#postHandle
+6.  渲染视图
+7.  HandlerInterceptorTwo#afterCompletion
+8.  HandlerInterceptorOne#afterCompletion
+
+## 异常处理
+
+
+
+### 拦截异常
+
+在Controller中设置**ExceptionHandler**注解标注的控制器方法处理异常，接受参数为异常类对象列表，即目标异常类
+
+```java
+@ExceptionHandler({ArithmeticException.class})
+public ModelAndView exceptionHandler(Exception ex) {
+	ModelAndView mv = new ModelAndView("error");
+	mv.addObject("exception", ex);
+	return mv;
+}
+```
+注意，在拦截异常方法中不能使用Map参数，如果需要传参到请求域可以返回ModelAndView对象
+
+
+
+拦截的异常类有优先级，有限到具体的异常
+
+
+
+### @ResponseStatus注解 
+
+该注解标注在抛出异常的方法或自定义异常类上
+
+接受两个参数code与reason，分别为HttpStatus状态码和异常信息
+
+
+
+Spring mvc还有默认的异常处理类会对一些特殊的异常进行自动处理
+
+
+
+### SimpleMappingExceptionResolver
+
+
+
+ 如果希望对所有的异常进行统一的处理可以使用这个解析器，它会将异常映射到视图
+
+
+
+配置SimpleMappingExceptionResolver
+
+
+
+```xml
+
+<bean class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+	<!--传到映射视图的异常对象参数,value值为该参数的访问名-->
+    <property name="exceptionAttribute" value="ex"/>
+    
+    <property name="exceptionMappings">
+    	<pops>
+            <!--key为处理的异常的全类名，value值为映射的视图-->
+        	<prop key="com.nond.springmvc.exceptions.MyException">error</prop>
+        </pops>
+    </property>
+</bean>
+```
+
+
+
+
+
+## Spring mvc运行流程
+
+请求发出到服务器，Spring的DispatcherServlet查找Spring mvc中是否存在相应的映射
+
+
+
+若不存在，如果配置了mvc:default-servlet-handler则寻找目标静态资源，如果未配置则控制台输出(No mapping found for HTTP request with URI [xx/xx] in DispatcherServlet)且转到404页面
+
+
+
+若存在则请求映射到HandlerMapping，获取HandlerExecutionChain(在HandlerExecutionChain当中有处理器对象以及拦截器对象)，然后获取HandlerAdapter对象(在其中有数据处理，视图解析等工作)，接下来就是拦截器的运行流程
