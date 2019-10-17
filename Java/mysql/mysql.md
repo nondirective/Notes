@@ -726,13 +726,13 @@ ALTER TABLE 表名 MODIFY|CHANGE|ADD|DROP COLUMN 列名 [列类型 约束]
 
 语法：`ALTER TABLE 表名 MODIFY COLUMN  列名 新类型 新约束` 
 
-
+如果不提供相应的列级约束则原本的约束将会清空
 
 ##### 修改列名、列类型、约束（CHANGE）
 
 语法：`ALTER TABLE 表名 CHANGE COLUMN 旧列名 新列名 列类型 约束`
 
-如果通过MODITY仅修改列名还要提供原本的列类型和约束，如果不提供列类型，语句将无法执行，如果不提供原本的约束，原本的约束将丢失
+如果通过CHANGEG仅修改列名还要提供原本的列类型和约束，如果不提供列类型，语句将无法执行，如果不提供原本的约束，原本的约束将丢失
 
 也即是说通过这种方法修改，需要提供列名、列类型、约束着三个信息
 
@@ -812,7 +812,198 @@ FROM 旧表名
 
 略，参考仅复制表的部分结构，将矛盾表达式更换成想要的限制条件即可
 
+### 数据类型
 
+#### 整型
+
+TINYINT、SMALLINT、MEDIUMINT、INT(INTEGER)、BIGINT分别对应1、2、3、4、8字节的整形
+
+给类型添加UNSIGNED可声明无符号整形
+
+
+
+#### 小数
+
+*   FLOAT 4字节
+*   DOUBLE 8字节
+*   DECIMAL  10字节
+
+三个类型的声明
+
+*   FLOAT(M,D)
+*   DOUBLE(M,D)
+*   DECIMAL(M,D)
+
+M表示整数位和小数位总位数的上限
+
+D表示小数位位数的上限
+
+在FLOAT、DOUBLE的声明中(M,D)如果省略，在插入数据时会自动根据数值的大小变化
+
+在DECIMAL的声明中，如果省略了(M,D)将会有一个默认值(10,0)
+
+
+
+#### 字符与二进制
+
+定长和可变长的区别是，
+
+​	对于容量为10定长字符串，存入长度为2的数据，大小依旧为10
+
+​	对于容量为10的可变长字符串，存入长度为2的数据，大小为2
+
+*   char定长字符串
+
+*   varchar可变长字符串
+
+*   text大文本
+
+    *   tinytext:255byte
+
+    -   text:64kb
+    -   mediumtext:16m
+    -   longtext:4gb
+
+*   binary定长二进制数组
+
+*   varbinary可变长二进制数组
+
+*   blob
+
+    -   tinyblob:255byte
+-   blob:64kb
+    -   mediumblob:16m
+    -   longblob:4gb 
+    
+    
+
+#### 日期类型
+
+-   date：仅日期
+-   time：仅时间
+-   datetime：日期+时间，占8字节
+-   timestamp：日期加时间，与本地时区相关，占4字节
+-   year：仅年
+
+### 约束
+
+#### 六大约束
+
+-   PRIMARY KEY：主键约束（不可重复，不可为空）
+-   UNIQUE：唯一约束（不可重复，可为空，虽然说可以为空值，但是NULL值也是不可重复的，即null值也只能存在一个）
+-   NOT NULL：非空约束（不可为空）
+-   DEFAULT：默认值约束（给列设置默认值）
+-   CHECK：MySQL不支持
+-   FOREIGN KEY：外键约束（说明该列引用自另一个表，一般引用的列是主键或唯一键标注的）
+    
+
+
+
+#### 列级约束
+
+列级约束指放在在列声明字段后的约束
+PRIMARY KEY、NOT NULL、UNIQUE、DEFAULT都是列级约束
+
+FOREIGN KEY也可以像列级约束一样声明，但是MySQL不支持FOREIGN KEY使用列级约束的方式声明，语法不报错但不生效
+案例演示列级约束的声明
+    
+
+```mysql
+CREATE TABLE person(
+    id INT PRIMARY KEY,
+    `name` VARCHAR(20) NOT NULL,
+    telephon_number VARCHAR(11) UNIQUE,
+    gender VARCHAR(1) DEFAULT '男',
+    -- 外键  语法支持但无效
+    job varchar(20) REFERENCES person_job(id)
+);
+```
+
+
+​    
+#### 表级约束
+
+表级约束是在表声明的末尾给字段添加的约束
+PRIMARY KEY、FOREIGN KEY、UNIQUE都是表级约束
+语法：[CONSTRAINT 自定义键名] 约束名(约束字段名称)
+外键：[CONSTRAINT 自定义键名] FOREIGN（主表字段名称） REFERENCES 从表名称（从表字段名称）
+
+表级约束使用案例
+    
+
+```mysql
+	CREATE TABLE person(
+    	id INT,
+    	`name` VARCHAR(20),
+   	 	telephone_number VARCHAR(11),
+    	-- 列级约束 DEFAULT
+   		gender VARCHAR(1) DEFAULT '男',
+    	job INT,
+    	CONSTRAINT pk PRIMARY KEY(id),
+    	CONSTRAINT uk UNIQUE(telephone_number),
+    	CONSTRAINT fk FOREIGN KEY(job) REFERENCES t_job(id)
+    );
+```
+
+
+
+#### 联合主键
+
+多列字段联合为一个主键
+
+如在上述的person表中将id主键修改为一个id和telephone_number联合的主键
+
+`CONSTRAINT uni_pk PRIMARY KEY(id,telephone_number)` 
+
+联合主键的其一在表中值有重复不算做重复，联合主键的两者的值都有重复时才算作重复
+
+
+
+#### 给已创建的表添加约束
+
+列级约束使用ALTER TABLE MODIFY的方法
+
+已创建的表使用ALTER TABLE ADD的方法添加，即`ALTER TABLE 表名 ADD COLMUN [CONSTRAINT 自定义键名] FOREIGN（主表字段名称） REFERENCES 从表名称（从表字段名称）`
+
+
+
+#### 删除约束
+
+删除非空约束和默认值参考修改表
+
+
+
+删除UNIQUE:
+
+​	`ALTER TABLE 表名 DROP INDEX 唯一约束名或约束所在列名`
+
+删除PRIMARY KEY
+
+​	`ALTER TABLE 表名 DROP PRIMARY KEY`
+
+删除FOREIGN KEY
+
+​	`ALTER TABLE 表名 DROP FOREIGN KEY 外键约束名或外键约束所在列名`
+
+### 标识列（自增列)
+
+标识列使用在主键或者唯一键上（一般多用在主键上），让列的值自增长
+
+关键字：AUTO_INCREMENT（标识位置参考标识列级约束）
+
+标识列的类型只能为数值型（整数+浮点数）
+
+
+
+默认的，标识列在第一次插入记录时省略标识列的值，默认为1，再次插入时再加1
+
+如果在标识类的一次插入记录时给定一个数值，那么该值就是标识标识列的起始值，再次插入时再加1
+
+
+
+如果需要规定标识列自增的步长，可以使用下面这条语句
+
+`SET auto_increment_increment=步长`
 
 ## 字符函数
 
