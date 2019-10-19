@@ -1,3 +1,5 @@
+
+
 #  MySQL
 
 
@@ -18,7 +20,7 @@ DBMS(Database Management System)数据库管理系统：操作数据库的系统
 
 SQL(Structure Query Language)结构化查询语言：控制数据库操作的命令语言
 
-
+---
 
 ## 常用命令
 
@@ -99,13 +101,15 @@ create table tableName(
 
 `source [filePath];`
 
-
+---
 
 ## DQL
 
 ### 基础查询
 
 #### 着重号
+
+在sqlyog使用，cmd中似乎不可用
 
 着重号  **`**  ，在命令中遇到列明和关键字冲突时，列明用着重号包围说明是列名
 
@@ -563,7 +567,7 @@ SELECT `an_name`,id FROM p_an;
 
 
 
-
+---
 
 ## DML
 
@@ -642,7 +646,7 @@ WHERE e.employee_id=206;
 
 特点：
 
-*   删除数据不可回滚
+*   删除数据在事务中不可回滚
 *   删除仅针对整个表
 *   不支持多表连接删除
 *   AUTO_INCREMENT自增值从新开始
@@ -1004,6 +1008,396 @@ PRIMARY KEY、FOREIGN KEY、UNIQUE都是表级约束
 如果需要规定标识列自增的步长，可以使用下面这条语句
 
 `SET auto_increment_increment=步长`
+
+---
+
+## 事务
+
+[事务.md](.\事务.md)
+
+---
+
+## 视图
+
+视图就是一个由一个或多个真实表导出的虚拟表，对视图的记录进行修改（仅支持原始表有的字段）也会影响到原始表的数据，但是在一下情况下不能够对视图进行增、删、改操作
+
+![](.\视图不能进行增删改操作的情况.png)
+
+如
+
+```mysql
+UPDATE view_01 SET last_name='King',department_name='unknow' WHERE last_name='K_ing';
+```
+
+这个跨越两表的操作不允许的
+
+
+
+
+
+一般的，也可以将视图用来当做SQL语句复用的工具
+
+#### 创建视图
+
+简单创建视图的语法：CREATE VIEW 视图名 AS (得到结果集的查询语句)
+
+```mysql
+CREATE OR REPLACE VIEW view_01
+AS 
+
+SELECT last_name,salary,department_name,d.department
+FROM employees e
+INNER JOIN departments d 
+ON e.department_id=d.department_id
+WHERE salary>10000;
+```
+
+
+
+#### 视图的使用
+
+对于视图的使用，只要把视图当做一个表来使用就可以了
+
+但是需要注意在上面提到的几个不能使用增、删、改操作的情况
+
+
+
+#### 查看视图结构
+
+跟表一样使用DESC关键字查看
+
+
+
+#### 删除视图
+
+`DROP VIEW 视图名`
+
+
+
+#### 修改视图
+
+只需要把创建视图的语句`CREATE VIEW 视图名 AS`改成`CREATE OR REPLACE VIEW 视图名 AS`即即可
+
+语义为如果视图不存在则创建视图，若视图存在则替换原视图为新的视图
+
+---
+
+## 变量
+
+### 系统变量
+
+系统变量是由服务器提供的作用于mysql全部连接或部分连接的变量，如autocommit
+
+系统变量根据作用域可以分为
+
+-   全局变量(GLOBAL)
+
+    作用于所有的会话，在某一个会话中修改也会影响到其他会话，但修改在mysql服务重启后变回默认值
+
+-   局部变量(SESSION)
+
+    仅作用于当前会话
+
+#### 系统变量的查看及修改
+
+```mysql
+-- 查看所有全局变量
+SHOW GLOBAL VARIABLES;
+-- 查看部分全局变量，使用模糊查询进行限制
+SHOW GLOBAL VARIABLES LIKE '%char';
+-- 查看某个全局变量的值
+SELECT @@global.autocommit;
+-- 修改某个全局变量的值
+	-- 1.
+	SET @@global.autocommit=0;
+	-- 2.
+	SET GLOBAL autocommit=1;
+
+-- 查看所有的局部变量
+SHOW VARIABLES;
+SHOW SESSION VARIABLES;
+-- 查看部分局部变量，使用模糊查询进行限制
+SHOW VARIABLES LIKE '%char%';
+SHOW SESSION VARIABLES LIKE '%char%';
+-- 查看某个局部变量的值
+SELECT @@autocommit;
+SELECT @@session.autocommit;
+-- 修改某个全局变量的值
+	-- 1.
+	SET @@autocommit=0;
+	SET @@session.autocommit=0;
+	-- 2.
+	SET SESSION autocommit=1;
+```
+
+### 自定义变量
+
+只能在BEGIN    END中使用
+
+ 语法：DECLARE 变量名 变量类型 [DEFAULT 初始值]
+
+### 用户变量
+
+ 用户变量的作用域为当前会话
+
+#### 声明与赋值
+
+所有的能够用于声明并初始化变量的语法格式都可以用来修改变量值
+
+```mysql
+-- 声明并初始化用户变量
+SET @num=1;
+SET @num:=1;
+SELECT @num:=1;
+-- 这种方式进行声明并并初始化select返回的结果只能为一行一列
+SELECT COUNT(*) INTO @count FROM employees;
+-- 更新用户变量值
+SET @num=2;
+SET @num:=2;
+SELECT @num:=2;
+-- 这种方法进行复制select返回的结果只能为一行一列
+SELECT COUNT(*) INTO @count FROM employees WHERE salary>10000;
+SELECT @count;
+```
+
+#### 
+
+### 局部变量
+
+ 局部变量的作用域在BEGIN     END两个语句之间，也只能够生命在两者之间
+
+声明语法：DECLARE 局部变量名 类型 [DEFAULT 初始化值]
+
+#### 赋值与更新
+
+```mysql
+SET 变量名=值;
+SET 变量名:=值;
+SELECT @变量名:=值;
+
+SELECT xxx INTO 变量名
+FROM XXXX;
+
+-- 查看变量值
+SELECT 变量名;
+```
+
+
+
+
+
+---
+
+## 存储过程
+
+存储过程其实就是变成语言中的方法，作用复用使用频率高的语句的集合，提高语句的复用性
+
+
+
+#### 修改结束符
+
+要创建一个存储过程，第一步需要做的就是修改结束符。默认的结束符为  `;`  
+
+但是在存储方程的方法体内必定是有多个结束符`;`的，如果没有修改结束符，那么在创建存储过程的过程中方法体内的语句被提交查询了，修改结束符就是为了完成声明存储过程
+
+```mysql
+DELIMITER 结束符
+```
+
+DELIMITER修改结束符的有效域为当前会话
+
+#### 创建使用过程并调用案例
+
+存储过程的传入参数除了要指定变量名和变量类型外还需要说明变量模式
+
+模式如下
+
+-   IN
+
+    变量作为入参
+
+-   OUT
+
+    变量作为返回值
+
+-   INOUT
+
+    变量即为入参也为返回值
+
+
+
+案例1：查询工资大于某值的员工数
+
+```mysql
+-- 修改结束符
+DELIMITER $
+
+-- 声明存储过程
+CREATE PROCEDURE test01(IN salary DOUBLE,OUT COUNT INT)
+BEGIN
+SELECT COUNT(*) INTO COUNT FROM employees e WHERE e.salary>salary;
+END$
+
+DECLARE COUNT INT;
+
+-- 调用
+CALL test01(5000.0,COUNT)$
+
+SELECT COUNT;
+```
+
+案例2：传入某值，将值变为原来的n倍
+
+```mysql
+-- 修改结束符
+DELIMITER $
+
+SET @num:=11;
+
+-- 声明存储过程
+CREATE PROCEDURE test02(INOUT num INT,IN n INT)
+BEGIN
+SET num:=num*n;
+END $
+
+-- 调用
+CALL test02(@num,11)$
+
+SELECT @num;
+```
+
+#### 删除存储过程
+
+DROP PROCEDURE 存储过程名
+
+#### 查看存储过程
+
+SHOW CREATE PROCEDURE 存储过程名
+
+
+
+---
+
+## 自定义函数
+
+自定义函数的使用跟存储过程类似，首先修改结束符，随后定义函数
+
+需要注意的是mysql的bin_log在开启时，我们自定义的函数需要在定义说明函数是否为确定性的或者是否修改数据，有一下三个参数
+
+1.  DETERMINISTIC 确定的
+2.  NO SQL 没有SQl语句，当然也不会修改数据
+3.  READS SQL DATA 只是读取数据，当然也不会修改数据 
+
+参考： https://blog.csdn.net/ty_soft/article/details/6940190 
+
+
+
+##### 创建函数实例
+
+```mysql
+DELIMITER $
+
+CREATE FUNCTION func01(a INT,b INT) RETURNS INT DETERMINISTIC
+BEGIN 
+DECLARE result INT;
+SET result:=a+b;
+RETURN result;s
+END $
+
+SELECT func01(1,2)$
+```
+
+
+
+##### 查看函数
+
+SHOW CREATE FUNCTION 函数名；
+
+##### 删除函数
+
+DROP FUNCTION 函数名；
+
+---
+
+## 流程控制
+
+###  if...elseif...else...
+
+在begin    end中使用
+
+使用案例
+
+```mysql
+CREATE FUNCTION func02(i INT) RETURNS BOOLEAN NO SQL
+BEGIN 
+DECLARE result BOOLEAN;
+IF(i=0) THEN SET result:=FALSE;
+ELSEIF(i=1) THEN SET result:=TRUE;
+END IF;
+RETURN result;
+END $
+```
+
+### 循环结构
+
+mysql 中有三种循环结构，分别为
+
+-   while
+-   loop
+-   repeat
+
+使用语法如下
+
+###### while
+
+```mysql
+[名称:]WHILE 循环条件 DO
+循环体....
+END WHILE [名称];
+
+```
+
+###### loop
+
+```mysql
+[名称:]LOOP
+循环体...
+END LOOP [名称];
+```
+
+
+
+###### repeat
+
+```mysql
+[名称:]REPEAT
+循环体
+UNTIL 结束条件
+END REPEAT [名称];
+```
+
+除此之外还有两个循环控制语句
+
+-   leave：类似于break，用于跳出所在的循环
+-   iterate：类似于continue，用于结束本次循环，继续下一次
+
+
+
+以while 为使用案例
+
+```mysql
+CREATE PROCEDURE pd01(IN i INT)
+BEGIN
+DECLARE j INT DEFAULT 0;
+wh:WHILE j<=i DO
+INSERT INTO number(num) VALUES(j);
+SET j:=j+1;
+END WHILE wh;
+END $
+UNTIL
+```
+
+---
 
 ## 字符函数
 
