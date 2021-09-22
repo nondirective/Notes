@@ -4,12 +4,6 @@
 
 **1.构建数据库表:**
 
-
-
-
-
-
-
 ```mysql
 CREATE TABLE user(
 	id INT(20) NOT NULL PRIMARY KEY,
